@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Nuova spedizione - POD{% endblock %}
+{% block page_title %}Nuova spedizione{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px;">
+    <div class="card-header">Crea nuova spedizione</div>
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="card-header" style="font-size: 0.95rem; margin-top: 0.5rem;">Mittente</div>
+        <div class="form-group">
+            <label for="id_sender">Cliente mittente *</label>
+            {{ form.sender }}
+        </div>
+        <div class="form-group">
+            <label for="id_sender_address">Indirizzo mittente</label>
+            {{ form.sender_address }}
+        </div>
+
+        <div class="card-header" style="font-size: 0.95rem; margin-top: 1rem;">Destinatario</div>
+        <div class="form-group">
+            <label for="id_recipient_name">Nome destinatario *</label>
+            {{ form.recipient_name }}
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_recipient_phone">Telefono</label>
+                {{ form.recipient_phone }}
+            </div>
+            <div class="form-group">
+                <label for="id_recipient_email">Email</label>
+                {{ form.recipient_email }}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_delivery_address">Indirizzo (da anagrafica)</label>
+            {{ form.delivery_address }}
+        </div>
+        <p style="color: var(--gray-500); font-size: 0.875rem; margin-bottom: 0.5rem;">Oppure inserisci manualmente:</p>
+        <div class="form-group">
+            <label for="id_delivery_street">Indirizzo</label>
+            {{ form.delivery_street }}
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_delivery_city">Citta</label>
+                {{ form.delivery_city }}
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="id_delivery_province">Provincia</label>
+                    {{ form.delivery_province }}
+                </div>
+                <div class="form-group">
+                    <label for="id_delivery_postal_code">CAP</label>
+                    {{ form.delivery_postal_code }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card-header" style="font-size: 0.95rem; margin-top: 1rem;">Dettagli spedizione</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_delivery_type">Tipo consegna</label>
+                {{ form.delivery_type }}
+            </div>
+            <div class="form-group">
+                <label for="id_priority">Priorita</label>
+                {{ form.priority }}
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="id_reference">Riferimento ordine</label>
+            {{ form.reference }}
+        </div>
+        <div class="form-group">
+            <label for="id_description">Descrizione merce</label>
+            {{ form.description }}
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="id_packages_count">Numero colli</label>
+                {{ form.packages_count }}
+            </div>
+            <div class="form-group">
+                <label for="id_weight_kg">Peso (kg)</label>
+                {{ form.weight_kg }}
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="id_estimated_delivery_date">Data consegna prevista</label>
+            {{ form.estimated_delivery_date }}
+        </div>
+        <div class="form-group">
+            <label for="id_notes_internal">Note interne</label>
+            {{ form.notes_internal }}
+        </div>
+
+        {% if form.errors %}
+        <div style="background: #fee2e2; padding: 0.75rem; border-radius: 0.375rem; margin-bottom: 1rem;">
+            {% for field, errors in form.errors.items %}
+                <p style="color: #991b1b;"><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" class="btn btn-primary">Crea spedizione</button>
+            <a href="/shipments/" class="btn btn-outline">Annulla</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

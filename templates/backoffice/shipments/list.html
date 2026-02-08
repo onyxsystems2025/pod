@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Spedizioni - POD{% endblock %}
+{% block page_title %}Spedizioni{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <div class="search-bar" style="flex: 1; max-width: 600px;">
+        <input type="search" name="q" value="{{ current_q }}"
+               placeholder="Cerca per tracking, riferimento, destinatario..."
+               hx-get="/shipments/"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#shipment-table"
+               hx-include="[name='status']"
+               hx-push-url="true">
+        <select name="status"
+                hx-get="/shipments/"
+                hx-trigger="change"
+                hx-target="#shipment-table"
+                hx-include="[name='q']"
+                hx-push-url="true">
+            <option value="">Tutti gli stati</option>
+            {% for value, label in statuses %}
+            <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <a href="/shipments/create/" class="btn btn-primary">+ Nuova spedizione</a>
+</div>
+
+<div id="shipment-table">
+    {% include "backoffice/shipments/_table.html" %}
+</div>
+{% endblock %}

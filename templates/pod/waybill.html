@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11pt; color: #111; }
+
+        .waybill { border: 2px solid #111; padding: 0; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 2px solid #111; background: #f0f0f0; }
+        .header-left h1 { font-size: 18pt; margin: 0; }
+        .header-left p { font-size: 9pt; color: #555; margin-top: 2px; }
+        .header-right { text-align: right; }
+        .tracking-code { font-size: 16pt; font-weight: 700; letter-spacing: 2px; }
+
+        .qr-section { text-align: center; padding: 15px; border-bottom: 2px solid #111; }
+        .qr-section img { width: 150px; height: 150px; }
+        .qr-section p { font-size: 8pt; color: #777; margin-top: 5px; }
+
+        .section { padding: 10px 15px; border-bottom: 1px solid #ccc; }
+        .section:last-child { border-bottom: none; }
+        .section-title { font-size: 9pt; font-weight: 700; text-transform: uppercase; color: #555; margin-bottom: 5px; letter-spacing: 1px; }
+
+        .two-col { display: flex; }
+        .two-col > div { flex: 1; }
+        .two-col > div:first-child { border-right: 1px solid #ccc; padding-right: 15px; }
+        .two-col > div:last-child { padding-left: 15px; }
+
+        .field { margin-bottom: 4px; }
+        .field-label { font-size: 8pt; color: #777; text-transform: uppercase; }
+        .field-value { font-size: 11pt; font-weight: 500; }
+        .field-value-large { font-size: 13pt; font-weight: 700; }
+
+        .details-grid { display: flex; gap: 20px; }
+        .details-grid .field { flex: 1; }
+
+        .signature-area { margin-top: 10px; border: 1px dashed #ccc; height: 80px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 10pt; }
+
+        .footer { text-align: center; padding: 8px; font-size: 8pt; color: #999; border-top: 1px solid #ccc; }
+
+        .barcode-area { text-align: center; padding: 5px; font-family: monospace; font-size: 14pt; letter-spacing: 3px; }
+    </style>
+</head>
+<body>
+    <div class="waybill">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>FOGLIO DI VETTURA</h1>
+                <p>Documento di trasporto</p>
+            </div>
+            <div class="header-right">
+                <div class="tracking-code">{{ shipment.tracking_code }}</div>
+                <div style="font-size: 9pt; color: #555;">{{ generated_at|date:"d/m/Y H:i" }}</div>
+            </div>
+        </div>
+
+        <!-- QR Code -->
+        <div class="qr-section">
+            <img src="{{ qr_data_uri }}" alt="QR Code POD">
+            <p>Inquadra per registrare la consegna</p>
+        </div>
+
+        <!-- Mittente / Destinatario -->
+        <div class="section">
+            <div class="two-col">
+                <div>
+                    <div class="section-title">Mittente</div>
+                    <div class="field">
+                        <div class="field-value-large">{{ shipment.sender.company_name }}</div>
+                    </div>
+                    {% if shipment.sender.contact_name %}
+                    <div class="field">
+                        <div class="field-label">Referente</div>
+                        <div class="field-value">{{ shipment.sender.contact_name }}</div>
+                    </div>
+                    {% endif %}
+                    {% if sender_address %}
+                    <div class="field">
+                        <div class="field-label">Indirizzo</div>
+                        <div class="field-value">{{ sender_address }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <div class="section-title">Destinatario</div>
+                    <div class="field">
+                        <div class="field-value-large">{{ shipment.recipient_name }}</div>
+                    </div>
+                    <div class="field">
+                        <div class="field-label">Indirizzo</div>
+                        <div class="field-value">{{ delivery_address_display }}</div>
+                    </div>
+                    {% if shipment.recipient_phone %}
+                    <div class="field">
+                        <div class="field-label">Telefono</div>
+                        <div class="field-value">{{ shipment.recipient_phone }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Dettagli spedizione -->
+        <div class="section">
+            <div class="section-title">Dettagli spedizione</div>
+            <div class="details-grid">
+                <div class="field">
+                    <div class="field-label">Riferimento</div>
+                    <div class="field-value">{{ shipment.reference|default:"-" }}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">Colli</div>
+                    <div class="field-value-large">{{ shipment.packages_count }}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">Peso (kg)</div>
+                    <div class="field-value">{{ shipment.weight_kg|default:"-" }}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">Priorita</div>
+                    <div class="field-value">{{ shipment.get_priority_display }}</div>
+                </div>
+                <div class="field">
+                    <div class="field-label">Consegna prevista</div>
+                    <div class="field-value">{{ shipment.estimated_delivery_date|date:"d/m/Y"|default:"-" }}</div>
+                </div>
+            </div>
+            {% if shipment.description %}
+            <div class="field" style="margin-top: 8px;">
+                <div class="field-label">Descrizione merce</div>
+                <div class="field-value">{{ shipment.description }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Area firma manuale (backup) -->
+        <div class="section">
+            <div class="section-title">Firma di ricezione (backup cartaceo)</div>
+            <div class="two-col">
+                <div>
+                    <div class="field">
+                        <div class="field-label">Nome e cognome</div>
+                        <div style="border-bottom: 1px solid #ccc; height: 25px; margin-top: 5px;"></div>
+                    </div>
+                    <div class="field" style="margin-top: 10px;">
+                        <div class="field-label">Data e ora</div>
+                        <div style="border-bottom: 1px solid #ccc; height: 25px; margin-top: 5px;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="signature-area">Firma</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barcode tracking -->
+        <div class="section">
+            <div class="barcode-area">{{ shipment.tracking_code }}</div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Tracking online: {{ tracking_url }}
+        </div>
+    </div>
+</body>
+</html>

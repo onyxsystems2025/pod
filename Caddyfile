@@ -1,0 +1,27 @@
+{
+    # Disabilita HTTPS automatico (usiamo solo HTTP su rete locale)
+    auto_https off
+}
+
+:80 {
+    # Static files
+    handle /static/* {
+        root * /srv
+        file_server
+    }
+
+    # Media files
+    handle /media/* {
+        root * /srv
+        file_server
+    }
+
+    # Proxy to Django
+    handle {
+        reverse_proxy web:8000
+    }
+
+    log {
+        output file /var/log/caddy/access.log
+    }
+}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>POD Corriere</title>
+    <link rel="manifest" href="/static/pwa/manifest.json">
+    <link rel="stylesheet" href="/static/pwa/app.css">
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <h1>POD Corriere</h1>
+            <span id="connection-status" class="status online">Online</span>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="screen-login" class="screen">
+            <div class="login-form">
+                <h2>Accedi</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-username">Username</label>
+                        <input type="text" id="login-username" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Accedi</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Shipments List Screen -->
+        <div id="screen-shipments" class="screen">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                <h2 style="font-size:1.125rem;">Spedizioni di oggi</h2>
+                <button onclick="loadShipments()" class="btn btn-outline btn-sm" style="width:auto;">Aggiorna</button>
+            </div>
+            <div id="shipments-list"></div>
+            <button onclick="logout()" class="btn btn-outline" style="margin-top:2rem;">Esci</button>
+        </div>
+
+        <!-- POD Form Screen -->
+        <div id="screen-pod-form" class="screen">
+            <button onclick="backToList()" class="btn btn-outline btn-sm" style="width:auto;margin-bottom:1rem;">&larr; Indietro</button>
+
+            <div style="border:1px solid var(--gray-200);border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;background:var(--gray-50);">
+                <div id="pod-tracking" style="font-weight:700;color:var(--primary);"></div>
+                <div id="pod-recipient" style="font-weight:500;margin:0.25rem 0;"></div>
+                <div id="pod-address" style="font-size:0.875rem;color:var(--gray-500);"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="pod-result">Esito consegna</label>
+                <select id="pod-result">
+                    <option value="delivered">Consegnata</option>
+                    <option value="partial">Consegna parziale</option>
+                    <option value="refused">Rifiutata</option>
+                    <option value="damaged">Danneggiata</option>
+                    <option value="absent">Destinatario assente</option>
+                    <option value="wrong_address">Indirizzo errato</option>
+                    <option value="other">Altro</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="pod-signer">Nome firmatario</label>
+                <input type="text" id="pod-signer" placeholder="Chi ha ricevuto la merce">
+            </div>
+
+            <!-- Firma digitale -->
+            <div class="form-group">
+                <label>Firma</label>
+                <div class="signature-container">
+                    <canvas id="signature-canvas"></canvas>
+                    <button class="signature-clear" onclick="clearSignature()">Cancella</button>
+                </div>
+            </div>
+
+            <!-- Foto -->
+            <div class="form-group">
+                <label>Foto merce</label>
+                <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none;">
+                <div id="photo-grid" class="photo-grid">
+                    <div class="photo-add" onclick="capturePhoto()">+</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="pod-notes">Note</label>
+                <textarea id="pod-notes" placeholder="Eventuali note (danni, parziale, ecc.)"></textarea>
+            </div>
+
+            <button id="pod-submit-btn" onclick="submitPOD()" class="btn btn-success">
+                Conferma consegna
+            </button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="/static/pwa/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --success: #16a34a;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-50); color: var(--gray-900); }
+
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: white; }
+
+.header {
+    background: var(--primary);
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.header h1 { font-size: 1.125rem; }
+.header .status { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 9999px; }
+.header .online { background: rgba(255,255,255,0.2); }
+.header .offline { background: var(--danger); }
+
+.screen { display: none; padding: 1rem; }
+.screen.active { display: block; }
+
+/* Login */
+.login-form { max-width: 320px; margin: 3rem auto; }
+.login-form h2 { text-align: center; margin-bottom: 1.5rem; }
+
+/* Form elements */
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.875rem; }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 0.75rem; border: 1px solid var(--gray-200);
+    border-radius: 0.5rem; font-size: 1rem;
+}
+.form-group textarea { min-height: 80px; resize: vertical; }
+
+.btn {
+    display: block; width: 100%; padding: 0.875rem; border-radius: 0.5rem;
+    font-size: 1rem; font-weight: 600; border: none; cursor: pointer;
+    text-align: center; transition: background 0.2s;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-outline { background: white; border: 1px solid var(--gray-200); color: var(--gray-700); }
+.btn-sm { padding: 0.5rem; font-size: 0.875rem; }
+
+/* Shipment list */
+.shipment-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.shipment-card:active { border-color: var(--primary); }
+.shipment-card .tracking { font-weight: 700; font-size: 0.875rem; color: var(--primary); }
+.shipment-card .recipient { font-size: 1rem; font-weight: 500; margin: 0.25rem 0; }
+.shipment-card .address { font-size: 0.875rem; color: var(--gray-500); }
+.shipment-card .meta { display: flex; justify-content: space-between; margin-top: 0.5rem; font-size: 0.75rem; }
+.badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+.badge-assigned { background: #dbeafe; color: #1d4ed8; }
+.badge-picked_up { background: #fef3c7; color: #92400e; }
+.badge-in_transit { background: #fef3c7; color: #92400e; }
+.badge-out_for_delivery { background: #fed7aa; color: #c2410c; }
+
+/* Signature canvas */
+.signature-container {
+    border: 2px solid var(--gray-200);
+    border-radius: 0.5rem;
+    position: relative;
+    touch-action: none;
+    background: white;
+}
+.signature-container canvas { display: block; width: 100%; height: 200px; }
+.signature-clear {
+    position: absolute; top: 0.5rem; right: 0.5rem;
+    background: white; border: 1px solid var(--gray-200);
+    padding: 0.25rem 0.5rem; border-radius: 0.25rem;
+    font-size: 0.75rem; cursor: pointer;
+}
+
+/* Photo grid */
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 0.5rem; }
+.photo-grid img { width: 100%; height: 80px; object-fit: cover; border-radius: 0.375rem; border: 1px solid var(--gray-200); }
+.photo-add {
+    width: 100%; height: 80px; border: 2px dashed var(--gray-200);
+    border-radius: 0.375rem; display: flex; align-items: center;
+    justify-content: center; font-size: 1.5rem; color: var(--gray-500);
+    cursor: pointer; background: var(--gray-50);
+}
+
+/* Toast */
+.toast {
+    position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+    background: var(--gray-900); color: white; padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem; font-size: 0.875rem; z-index: 100;
+    opacity: 0; transition: opacity 0.3s;
+}
+.toast.show { opacity: 1; }

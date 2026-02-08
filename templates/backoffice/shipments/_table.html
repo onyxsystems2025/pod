@@ -1,0 +1,62 @@
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Tracking</th>
+                <th>Riferimento</th>
+                <th>Destinatario</th>
+                <th>Mittente</th>
+                <th>Stato</th>
+                <th>Corriere</th>
+                <th>Colli</th>
+                <th>Data prevista</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in shipments %}
+            <tr>
+                <td><a href="/shipments/{{ s.uuid }}/">{{ s.tracking_code }}</a></td>
+                <td>{{ s.reference|default:"-" }}</td>
+                <td>{{ s.recipient_name }}</td>
+                <td>{{ s.sender.company_name }}</td>
+                <td><span class="badge badge-{{ s.status }}">{{ s.get_status_display }}</span></td>
+                <td>
+                    {% if s.driver %}
+                        {{ s.driver.user.get_full_name }}
+                    {% elif s.external_carrier %}
+                        {{ s.external_carrier.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ s.packages_count }}</td>
+                <td>{{ s.estimated_delivery_date|date:"d/m/Y"|default:"-" }}</td>
+                <td>
+                    <a href="/shipments/{{ s.uuid }}/" class="btn btn-sm btn-outline">Dettaglio</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="9" style="text-align: center; color: var(--gray-500);">Nessuna spedizione trovata</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&status={{ current_status }}&q={{ current_q }}">&#8592;</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <span class="current">{{ num }}</span>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+            <a href="?page={{ num }}&status={{ current_status }}&q={{ current_q }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&status={{ current_status }}&q={{ current_q }}">&#8594;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

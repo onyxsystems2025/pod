@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}{{ shipment.tracking_code }} - POD{% endblock %}
+{% block page_title %}Spedizione {{ shipment.tracking_code }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+    <!-- Colonna principale -->
+    <div style="flex: 2; min-width: 400px;">
+        <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between;">
+                <span>Dettagli spedizione</span>
+                <span class="badge badge-{{ shipment.status }}">{{ shipment.get_status_display }}</span>
+            </div>
+            <div class="form-row">
+                <div>
+                    <strong>Tracking:</strong> {{ shipment.tracking_code }}<br>
+                    <strong>Riferimento:</strong> {{ shipment.reference|default:"-" }}<br>
+                    <strong>Tipo:</strong> {{ shipment.get_delivery_type_display }}<br>
+                    <strong>Priorita:</strong> {{ shipment.get_priority_display }}
+                </div>
+                <div>
+                    <strong>Colli:</strong> {{ shipment.packages_count }}<br>
+                    <strong>Peso:</strong> {{ shipment.weight_kg|default:"-" }} kg<br>
+                    <strong>Creata:</strong> {{ shipment.created_at|date:"d/m/Y H:i" }}<br>
+                    <strong>Operatore:</strong> {{ shipment.created_by.get_full_name|default:"-" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Mittente / Destinatario</div>
+            <div class="form-row">
+                <div>
+                    <strong>Mittente:</strong><br>
+                    {{ shipment.sender.company_name }}<br>
+                    {% if shipment.sender_address %}{{ shipment.sender_address }}{% endif %}
+                </div>
+                <div>
+                    <strong>Destinatario:</strong><br>
+                    {{ shipment.recipient_name }}<br>
+                    {{ shipment.get_effective_delivery_address }}<br>
+                    {% if shipment.recipient_phone %}Tel: {{ shipment.recipient_phone }}<br>{% endif %}
+                    {% if shipment.recipient_email %}Email: {{ shipment.recipient_email }}{% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if shipment.description or shipment.notes_internal %}
+        <div class="card">
+            <div class="card-header">Note</div>
+            {% if shipment.description %}<p><strong>Merce:</strong> {{ shipment.description }}</p>{% endif %}
+            {% if shipment.notes_internal %}<p><strong>Note interne:</strong> {{ shipment.notes_internal }}</p>{% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Corriere -->
+        <div class="card">
+            <div class="card-header">Corriere</div>
+            {% if shipment.driver %}
+                <p><strong>Corriere interno:</strong> {{ shipment.driver.user.get_full_name }} ({{ shipment.driver.vehicle_plate }})</p>
+            {% elif shipment.external_carrier %}
+                <p><strong>Corriere esterno:</strong> {{ shipment.external_carrier.name }}</p>
+                {% if shipment.external_tracking_number %}
+                <p><strong>Tracking esterno:</strong>
+                    {% if shipment.get_external_tracking_url %}
+                    <a href="{{ shipment.get_external_tracking_url }}" target="_blank">{{ shipment.external_tracking_number }}</a>
+                    {% else %}
+                    {{ shipment.external_tracking_number }}
+                    {% endif %}
+                </p>
+                {% endif %}
+            {% else %}
+                <p style="color: var(--gray-500);">Non assegnato</p>
+            {% endif %}
+        </div>
+
+        <!-- POD -->
+        {% if pod %}
+        <div class="card">
+            <div class="card-header">Proof of Delivery</div>
+            <p><strong>Esito:</strong> {{ pod.get_delivery_result_display }}</p>
+            <p><strong>Firmatario:</strong> {{ pod.recipient_signer_name|default:"-" }}</p>
+            <p><strong>Data/ora:</strong> {{ pod.recorded_at|date:"d/m/Y H:i" }}</p>
+            {% if pod.notes %}<p><strong>Note:</strong> {{ pod.notes }}</p>{% endif %}
+            {% if pod.signature_image %}
+            <p><strong>Firma:</strong></p>
+            <img src="{{ pod.signature_image.url }}" alt="Firma" style="max-width: 300px; border: 1px solid var(--gray-200); border-radius: 4px;">
+            {% endif %}
+            {% if pod_photos %}
+            <p style="margin-top: 0.5rem;"><strong>Foto ({{ pod_photos|length }}):</strong></p>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% for photo in pod_photos %}
+                <img src="{{ photo.image.url }}" alt="{{ photo.caption }}" style="max-width: 200px; max-height: 150px; border-radius: 4px; border: 1px solid var(--gray-200);">
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Colonna laterale -->
+    <div style="flex: 1; min-width: 280px;">
+        <!-- Azioni -->
+        <div class="card">
+            <div class="card-header">Azioni</div>
+            {% if allowed_transitions %}
+            <form method="post" action="/shipments/{{ shipment.uuid }}/transition/">
+                {% csrf_token %}
+                <div class="form-group">
+                    <select name="new_status">
+                        {% for t in allowed_transitions %}
+                        <option value="{{ t }}">{{ status_choices|dictsort:t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Cambia stato</button>
+            </form>
+            {% else %}
+            <p style="color: var(--gray-500); font-size: 0.875rem;">Nessuna transizione disponibile (stato finale).</p>
+            {% endif %}
+
+            <div style="margin-top: 1rem;">
+                <a href="/api/v1/shipments/{{ shipment.uuid }}/waybill/"
+                   target="_blank" class="btn btn-outline" style="width: 100%; text-align: center; display: block;">
+                    Stampa foglio vettura
+                </a>
+                {% if shipment.waybill_printed_at %}
+                <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
+                    Ultimo: {{ shipment.waybill_printed_at|date:"d/m/Y H:i" }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 0.5rem;">
+                <a href="/t/{{ shipment.public_tracking_token }}/"
+                   target="_blank" class="btn btn-outline" style="width: 100%; text-align: center; display: block;">
+                    Pagina tracking
+                </a>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card">
+            <div class="card-header">Timeline</div>
+            <div class="timeline">
+                {% for event in events %}
+                <div class="timeline-item">
+                    <div class="time">{{ event.created_at|date:"d/m/Y H:i" }}</div>
+                    <div class="desc">
+                        <span class="badge badge-{{ event.status }}">{{ event.get_status_display }}</span>
+                        {{ event.description }}
+                    </div>
+                    {% if event.location %}<div class="time">{{ event.location }}</div>{% endif %}
+                </div>
+                {% empty %}
+                <p style="color: var(--gray-500);">Nessun evento registrato.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

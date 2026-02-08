@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking {{ shipment.tracking_code }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f9fafb; color: #111827; }
+        .container { max-width: 640px; margin: 0 auto; padding: 1rem; }
+        .header { text-align: center; padding: 2rem 0; }
+        .header h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .tracking-code { font-size: 1.25rem; font-weight: 700; color: #2563eb; letter-spacing: 1px; }
+
+        .status-banner { text-align: center; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1.5rem; }
+        .status-delivered { background: #dcfce7; color: #166534; }
+        .status-in_transit, .status-picked_up { background: #fef3c7; color: #92400e; }
+        .status-out_for_delivery { background: #fed7aa; color: #c2410c; }
+        .status-not_delivered { background: #fee2e2; color: #991b1b; }
+        .status-created, .status-assigned { background: #e5e7eb; color: #374151; }
+        .status-banner .status-text { font-size: 1.25rem; font-weight: 700; }
+
+        .card { background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; }
+        .card-title { font-weight: 600; margin-bottom: 0.75rem; color: #374151; }
+
+        .info-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #6b7280; font-size: 0.875rem; }
+        .info-value { font-weight: 500; }
+
+        .timeline { position: relative; padding-left: 1.5rem; }
+        .timeline::before { content: ''; position: absolute; left: 0.5rem; top: 0; bottom: 0; width: 2px; background: #e5e7eb; }
+        .timeline-item { position: relative; padding-bottom: 1.25rem; }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-item::before { content: ''; position: absolute; left: -1.25rem; top: 0.25rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: #2563eb; }
+        .timeline-item:first-child::before { background: #16a34a; width: 0.875rem; height: 0.875rem; left: -1.3rem; }
+        .timeline-time { font-size: 0.75rem; color: #6b7280; }
+        .timeline-desc { font-size: 0.875rem; margin-top: 0.125rem; }
+
+        .pod-section img { max-width: 100%; border-radius: 0.5rem; border: 1px solid #e5e7eb; margin-top: 0.5rem; }
+        .pod-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; }
+        .pod-photos img { width: 100%; height: 120px; object-fit: cover; border-radius: 0.5rem; border: 1px solid #e5e7eb; }
+
+        .footer { text-align: center; padding: 2rem 0; color: #9ca3af; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Tracking Spedizione</h1>
+            <div class="tracking-code">{{ shipment.tracking_code }}</div>
+        </div>
+
+        <div class="status-banner status-{{ shipment.status }}">
+            <div class="status-text">{{ shipment.get_status_display }}</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Dettagli</div>
+            <div class="info-row">
+                <span class="info-label">Destinatario</span>
+                <span class="info-value">{{ shipment.recipient_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Indirizzo</span>
+                <span class="info-value">{{ shipment.get_effective_delivery_address }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Mittente</span>
+                <span class="info-value">{{ shipment.sender.company_name }}</span>
+            </div>
+            {% if shipment.estimated_delivery_date %}
+            <div class="info-row">
+                <span class="info-label">Consegna prevista</span>
+                <span class="info-value">{{ shipment.estimated_delivery_date|date:"d/m/Y" }}</span>
+            </div>
+            {% endif %}
+            {% if shipment.actual_delivery_date %}
+            <div class="info-row">
+                <span class="info-label">Consegnata il</span>
+                <span class="info-value">{{ shipment.actual_delivery_date|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+            {% if shipment.external_carrier %}
+            <div class="info-row">
+                <span class="info-label">Corriere</span>
+                <span class="info-value">
+                    {{ shipment.external_carrier.name }}
+                    {% if shipment.get_external_tracking_url %}
+                    - <a href="{{ shipment.get_external_tracking_url }}" target="_blank">Tracking esterno</a>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if pod %}
+        <div class="card pod-section">
+            <div class="card-title">Prova di consegna</div>
+            <div class="info-row">
+                <span class="info-label">Esito</span>
+                <span class="info-value">{{ pod.get_delivery_result_display }}</span>
+            </div>
+            {% if pod.recipient_signer_name %}
+            <div class="info-row">
+                <span class="info-label">Firmato da</span>
+                <span class="info-value">{{ pod.recipient_signer_name }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+                <span class="info-label">Data/ora</span>
+                <span class="info-value">{{ pod.recorded_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% if pod.notes %}
+            <div class="info-row">
+                <span class="info-label">Note</span>
+                <span class="info-value">{{ pod.notes }}</span>
+            </div>
+            {% endif %}
+            {% if pod.signature_image %}
+            <p style="margin-top: 0.75rem; font-size: 0.875rem; color: #6b7280;">Firma:</p>
+            <img src="{{ pod.signature_image.url }}" alt="Firma digitale" style="max-width: 280px;">
+            {% endif %}
+            {% if pod_photos %}
+            <p style="margin-top: 0.75rem; font-size: 0.875rem; color: #6b7280;">Foto consegna:</p>
+            <div class="pod-photos">
+                {% for photo in pod_photos %}
+                <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Foto consegna' }}">
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-title">Cronologia</div>
+            <div class="timeline">
+                {% for event in events %}
+                <div class="timeline-item">
+                    <div class="timeline-time">{{ event.created_at|date:"d/m/Y H:i" }}</div>
+                    <div class="timeline-desc">{{ event.description }}</div>
+                    {% if event.location %}<div class="timeline-time">{{ event.location }}</div>{% endif %}
+                </div>
+                {% empty %}
+                <p style="color: #9ca3af;">Nessun evento registrato.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="footer">
+            POD - Proof of Delivery System
+        </div>
+    </div>
+</body>
+</html>
