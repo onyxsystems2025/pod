@@ -3,7 +3,7 @@
     auto_https off
 }
 
-:8080 {
+:80 {
     # Static files
     handle /static/* {
         root * /srv

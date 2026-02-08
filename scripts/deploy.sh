@@ -1,6 +1,7 @@
 #!/bin/bash
 # ============================================================
-# Script di deploy - eseguire come utente podadmin
+# Script di deploy per VM Ubuntu 24.04
+# Eseguire come utente podadmin
 # ============================================================
 set -e
 
@@ -37,10 +38,11 @@ if [ ! -f .env ]; then
 
     # Chiedi l'IP del server per ALLOWED_HOSTS
     echo ""
-    echo "Inserisci l'IP del server LXC (es: 192.168.1.200):"
+    echo "Inserisci l'IP del server (es: 192.168.1.200):"
     read -r SERVER_IP
     sed -i "s|ALLOWED_HOSTS=localhost,127.0.0.1|ALLOWED_HOSTS=localhost,127.0.0.1,$SERVER_IP|" .env
     sed -i "s|CORS_ALLOWED_ORIGINS=http://localhost:8000|CORS_ALLOWED_ORIGINS=http://localhost:8000,http://$SERVER_IP|" .env
+    sed -i "s|SITE_URL=http://localhost|SITE_URL=http://$SERVER_IP|" .env
 
     # DB host per Docker
     sed -i "s|DB_HOST=localhost|DB_HOST=db|" .env
